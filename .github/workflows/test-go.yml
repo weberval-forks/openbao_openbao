@@ -67,7 +67,7 @@ jobs:
         with:
           ref: ${{ inputs.checkout-ref }}
           persist-credentials: false
-      - uses: ./.github/actions/set-up-go
+      - uses: $/.github/actions/set-up-go
         name: Setup Git configuration (public)
       - run: mkdir -p test-results/go-test
       - name: Build matrix excluding binary & integration tests
@@ -91,11 +91,12 @@ jobs:
         env:
           INPUTS_TOTAL_RUNNERS: ${{ inputs.total-runners }}
           INPUTS_BINARY_TESTS: ${{ inputs.binary-tests }}
+          STEPS_LIST_BINARY_TESTS_OUTPUTS_LIST: ${{ steps.list-binary-tests.outputs.list }}
         run: |
           set -exo pipefail
           matrix_file="matrix.json"
-          if [ "$INPUTS_BINARY_TESTS" == "true" ] && [ -n "${{ steps.list-binary-tests.outputs.list }}" ]; then
-            export BINARY_TESTS="${{ steps.list-binary-tests.outputs.list }}"
+          if [ "$INPUTS_BINARY_TESTS" == "true" ] && [ -n "${STEPS_LIST_BINARY_TESTS_OUTPUTS_LIST}" ]; then
+            export BINARY_TESTS="${STEPS_LIST_BINARY_TESTS_OUTPUTS_LIST}"
             jq --arg BINARY "${BINARY_TESTS}" --arg BINARY_INDEX "$INPUTS_TOTAL_RUNNERS" \
               '.include += [{
                 "id": $BINARY_INDEX,
@@ -138,7 +139,7 @@ jobs:
         with:
           ref: ${{ inputs.checkout-ref }}
           persist-credentials: false
-      - uses: ./.github/actions/set-up-go
+      - uses: $/.github/actions/set-up-go
       - id: setup-git-public
         name: Setup Git configuration (public)
         run: |
@@ -155,13 +156,14 @@ jobs:
           INPUTS_GO_ARCH: ${{ inputs.go-arch }}
           INPUTS_EXTRA_FLAGS: ${{ inputs.extra-flags }}
           INPUTS_GO_TAGS: ${{ inputs.go-tags }}
+          MATRIX_ID: ${{ matrix.id }}
         run: |
           set -exo pipefail
 
           # Build the dynamically generated source files.
           make prep
 
-          packages=$(echo "${{ toJSON(needs.test-matrix.outputs.matrix) }}" | jq -c -r --arg id "${{ matrix.id }}" '.[$id] | .packages')
+          packages=$(echo "${{ toJSON(needs.test-matrix.outputs.matrix) }}" | jq -c -r --arg id "${MATRIX_ID}" '.[$id] | .packages')
 
           if [ -z "$packages" ]; then
             echo "no test packages to run"
@@ -184,14 +186,14 @@ jobs:
           # shellcheck disable=SC2086 # can't quote RERUN_FAILS
           GOARCH="$INPUTS_GO_ARCH" \
             go tool -modfile=tools/go.mod gotestsum --format=short-verbose \
-              --junitfile test-results/go-test/results-${{ matrix.id }}.xml \
-              --jsonfile test-results/go-test/results-${{ matrix.id }}.json \
-              --jsonfile-timing-events "failure-summary-${{ matrix.id }}${{ inputs.name != '' && '-' || '' }}$INPUTS_NAME.json" \
+              --junitfile test-results/go-test/results-${MATRIX_ID}.xml \
+              --jsonfile test-results/go-test/results-${MATRIX_ID}.json \
+              --jsonfile-timing-events "failure-summary-${MATRIX_ID}${{ inputs.name != '' && '-' || '' }}$INPUTS_NAME.json" \
               $RERUN_FAILS \
               --packages "$packages" \
               -- \
               -tags "$INPUTS_GO_TAGS" \
-              -timeout=${{ env.TIMEOUT_IN_MINUTES }}m \
+              -timeout=${TIMEOUT_IN_MINUTES}m \
               -parallel=${{ inputs.go-test-parallelism }} \
               $INPUTS_EXTRA_FLAGS \
       - name: Archive test results
@@ -256,6 +258,7 @@ jobs:
       - name: Prepare failure summary
         env:
           INPUTS_NAME: ${{ inputs.name }}
+          MATRIX_ID: ${{ matrix.id }}
         if: success() || failure()
         continue-on-error: true
         run: |
@@ -265,9 +268,9 @@ jobs:
           # | github.com/openbao/openbao/package | TestName | fips | 0 | 2 | [view results](github.com/link-to-logs) |
           jq -r -n 'inputs
           | select(.Action == "fail")
-          | "| $INPUTS_NAME | \(.Package) | \(.Test // "-") | \(.Elapsed) | ${{ matrix.id }} | [view test results :scroll:](${{ env.GH_JOB_URL }}) |"' \
-          "failure-summary-${{ matrix.id }}${{ inputs.name != '' && '-' || '' }}$INPUTS_NAME.json" \
-          >> "failure-summary-${{ matrix.id }}${{ inputs.name != '' && '-' || '' }}$INPUTS_NAME.md"
+          | "| $INPUTS_NAME | \(.Package) | \(.Test // "-") | \(.Elapsed) | ${MATRIX_ID} | [view test results :scroll:](${GH_JOB_URL}) |"' \
+          "failure-summary-${MATRIX_ID}${{ inputs.name != '' && '-' || '' }}$INPUTS_NAME.json" \
+          >> "failure-summary-${MATRIX_ID}${{ inputs.name != '' && '-' || '' }}$INPUTS_NAME.md"
       - name: Upload failure summary
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         if: success() || failure()

@@ -36,23 +36,23 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - name: Ensure Go modules are cached
-        uses: ./.github/actions/set-up-go
+        uses: $/.github/actions/set-up-go
         with:
           no-restore: true # don't download them on a cache hit
-      # control checking out head instead of default ref by a GH label
-      # if checkout-head label is added to a PR, checkout HEAD otherwise checkout ref
-      - if: ${{ !contains(github.event.pull_request.labels.*.name, 'checkout-head') }}
-        run: echo "CHECKOUT_REF=${GITHUB_REF}" >> "$GITHUB_ENV"
-      - if: ${{ contains(github.event.pull_request.labels.*.name, 'checkout-head') }}
-        run: echo "CHECKOUT_REF=${BASE_SHA}" >> "$GITHUB_ENV"
-      - id: checkout-ref-output
-        run: echo "checkout-ref=${{ env.CHECKOUT_REF }}" >> "$GITHUB_OUTPUT"
+        # control checking out head instead of default ref by a GH label
+        # if checkout-head label is added to a PR, checkout HEAD otherwise checkout ref
+      - name: Set checkout ref
+        id: checkout-ref-output
+        run: echo "checkout-ref=${CHECKOUT_REF}" >> "$GITHUB_OUTPUT"
+        env:
+          CHECKOUT_REF: >-
+            ${{ contains(github.event.pull_request.labels.*.name, 'checkout-head') && github.event.pull_request.head.sha || github.ref }}
 
   test-go:
     name: Run Go tests
     needs:
       - setup
-    uses: ./.github/workflows/test-go.yml
+    uses: $/.github/workflows/test-go.yml
     permissions:
       contents: read
       actions: write
@@ -75,7 +75,7 @@ jobs:
     # Don't run this job for docs/ui only PRs
     if: |
       github.event.pull_request.draft == false
-    uses: ./.github/workflows/test-go.yml
+    uses: $/.github/workflows/test-go.yml
     permissions:
       contents: read
       actions: write

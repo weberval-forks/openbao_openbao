@@ -27,7 +27,7 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-      - uses: ./.github/actions/set-up-go
+      - uses: $/.github/actions/set-up-go
       - uses: golangci/golangci-lint-action@ba0d7d2ec06a0ea1cb5fa41b2e4a3ab91d21278a # v9.3.0
         if: always()
         with:
@@ -71,7 +71,7 @@ jobs:
     runs-on: ubuntu-slim
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-      - uses: ./.github/actions/set-up-go
+      - uses: $/.github/actions/set-up-go
       - name: Run go mod tidy to check for differences
         run: make ci-tidy-all
       - name: Run go.mod synchronization to check for differences
@@ -115,7 +115,7 @@ jobs:
     if: github.base_ref == 'main'
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-      - uses: ./.github/actions/set-up-go
+      - uses: $/.github/actions/set-up-go
       - name: Install protobuf
         run: |
           mkdir -p ~/.protoc

@@ -23,7 +23,7 @@ jobs:
           ref: ${{ github.head_ref }}
           ssh-key: ${{ secrets.DEPENDABOT_DEPLOY_KEY }}
       - name: Set up Go
-        uses: ./.github/actions/set-up-go
+        uses: $/.github/actions/set-up-go
       - name: Run sync-deps
         run: make sync-deps
       - name: Sync golangci-lint version to code-checker workflow

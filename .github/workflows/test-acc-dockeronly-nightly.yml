@@ -10,7 +10,7 @@ permissions:
 # Currently the jobs here are only for acceptance tests that have no dependencies except for Docker
 jobs:
   plugins-database:
-    uses: ./.github/workflows/test-run-acc-tests-for-path.yml
+    uses: $/.github/workflows/test-run-acc-tests-for-path.yml
     strategy:
       matrix:
         name: [mongodb, mysql, postgresql]
@@ -19,7 +19,7 @@ jobs:
       path: plugins/database/${{ matrix.name }}
 
   external:
-    uses: ./.github/workflows/test-run-acc-tests-for-path.yml
+    uses: $/.github/workflows/test-run-acc-tests-for-path.yml
     strategy:
       matrix:
         name: [api, identity, token]

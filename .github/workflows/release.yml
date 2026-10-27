@@ -40,6 +40,7 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-tags: true
+          persist-credentials: false
 
       - name: Determine version
         id: version
@@ -79,6 +80,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
 
       - name: Set up Node
         uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
@@ -141,9 +144,11 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
 
       - name: Set up Go
-        uses: ./.github/actions/set-up-go
+        uses: $/.github/actions/set-up-go
 
       - name: Set up UI cache
         uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
@@ -239,9 +244,11 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
 
       - name: Set up Go
-        uses: ./.github/actions/set-up-go
+        uses: $/.github/actions/set-up-go
 
       - name: Set up Node
         uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
@@ -385,7 +392,7 @@ jobs:
       contents: read
       packages: write
       id-token: write
-    uses: ./.github/workflows/release-images.yml
+    uses: $/.github/workflows/release-images.yml
     with:
       version: ${{ needs.setup.outputs.version }}
     secrets: inherit

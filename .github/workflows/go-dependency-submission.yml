@@ -24,7 +24,7 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       - name: 'Setup Golang'
-        uses: ./.github/actions/set-up-go
+        uses: $/.github/actions/set-up-go
 
       - name: 'Submit Dependencies To GitHub'
         uses: actions/go-dependency-submission@f35d5c9af13ce9cc32f7930b171e315e878f6921 # v2.0.3
